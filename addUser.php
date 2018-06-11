@@ -8,6 +8,7 @@ if($_SERVER["REQUEST_METHOD"]=="POST")
     require_once("config.php");
     require_once("connetiondb.php");
     require_once dirname(__FILE__)."/lib/validation.php";
+    require_once dirname(__FILE__)."/lib/workimage.php";
 
     if(isset($_POST["Name"]))
     {
@@ -42,9 +43,23 @@ if($_SERVER["REQUEST_METHOD"]=="POST")
     else if(!preg_match("#[a-z]+#",$password)) {
         $errors["password"] = "Your Password Must Contain At Least 1 Lowercase Letter!";
     }
-    else if (preg_match('@\W@', $password))
+    else if (!preg_match('@\W@', $password))
     {
         $errors["password"] = "Your Password Must Contain At Least 1 Special Characters!";
+    }
+    if(count($errors)==0)
+    {
+        $password=password_hash($password, PASSWORD_DEFAULT);
+        $ext = strtolower(pathinfo($_FILES['pic']['name'], PATHINFO_EXTENSION));
+        $file_name=GUID(). ".". $ext;
+        $file_save_path = $_SERVER['DOCUMENT_ROOT'].LINK_PATH.PHOTO_USER
+            .IMAGE_NORMAL.$file_name;
+        $w=300;
+        $h=300;
+        echo $file_save_path;
+        image_resize($w, $h, $file_save_path, 'pic');
+        header("Location: index.php");
+        exit;
     }
 
 
@@ -64,7 +79,7 @@ require_once "_header.php";
 <hr/>
 <div class="row">
     <div class="col-md-12">
-        <form action="addUser.php" method="post">
+        <form action="addUser.php" method="post" enctype="multipart/form-data">
 
             <div class="form-group">
                 <label for="Name">Ім'я</label>
